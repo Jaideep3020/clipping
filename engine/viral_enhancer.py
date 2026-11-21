@@ -261,6 +261,41 @@ def build_viral_visual_filters(
     return ",".join(filters)
 
 
+def isolate_speech_demucs(input_path: Path, output_vocals_path: Path) -> Optional[Path]:
+    """
+    State-of-the-Art Vocal & Dialogue Isolation using Meta Demucs AI.
+    Separates human dialogue from background music, studio noise, and copyrighted tracks.
+    """
+    import shutil
+    import sys
+
+    input_path = Path(input_path)
+    output_vocals_path = Path(output_vocals_path)
+    output_vocals_path.parent.mkdir(parents=True, exist_ok=True)
+
+    print(f"  🎙 Running Meta Demucs AI Dialogue Isolation on {input_path.name} …")
+    with tempfile.TemporaryDirectory(prefix="demucs_vocal_") as tmp_dir:
+        cmd = [
+            sys.executable, "-m", "demucs",
+            "--two-stems=vocals",
+            "-n", "htdemucs",
+            "-o", str(tmp_dir),
+            str(input_path)
+        ]
+        r = subprocess.run(cmd, capture_output=True, text=True)
+        if r.returncode != 0:
+            print(f"  ⚠ Demucs separation notice: {r.stderr.strip()[:180]}")
+            return None
+
+        separated_vocal = Path(tmp_dir) / "htdemucs" / input_path.stem / "vocals.wav"
+        if separated_vocal.exists():
+            shutil.copy2(str(separated_vocal), str(output_vocals_path))
+            print(f"  ✓ Clean isolated dialogue ready: {output_vocals_path.name}")
+            return output_vocals_path
+
+    return None
+
+
 def apply_viral_master_suite(
     input_video: Path,
     output_video: Path,
@@ -269,6 +304,7 @@ def apply_viral_master_suite(
     fast_jump_cut: bool = True,
     transition_pack: str = "auto",
     title: str = "",
+    isolate_vocals: bool = False,
 ) -> Path:
     """
     Apply full viral editing suite to a vertical short:
@@ -326,13 +362,22 @@ def apply_viral_master_suite(
         print("  🎬 Rendering viral master composite …")
         encoder_args = get_h264_encoder_args()
 
+        audio_input_idx = 0
+        extra_inputs = []
+        if isolate_vocals:
+            isolated_audio = tmp_path / "vocal_clean.wav"
+            if isolate_speech_demucs(input_video, isolated_audio):
+                extra_inputs = ["-i", str(isolated_audio)]
+                audio_input_idx = 2  # input 0 is video, 1 is sfx, 2 is clean vocal
+
         cmd = [
             "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
             "-i", str(input_video),
             "-i", str(sfx_wav),
+            *extra_inputs,
             "-filter_complex",
             f"[0:v]{v_filters}[v_out]; "
-            f"[0:a][1:a]amix=inputs=2:duration=first:weights=1.0 0.85[a_mix]; "
+            f"[{audio_input_idx}:a][1:a]amix=inputs=2:duration=first:weights=1.0 0.85[a_mix]; "
             f"[a_mix]highpass=f=75,loudnorm=I=-14:TP=-1.5:LRA=9[a_out]",
             "-map", "[v_out]",
             "-map", "[a_out]",

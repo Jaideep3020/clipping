@@ -45,15 +45,23 @@ class SubtitleStyle:
 
 
 def _get_system_font(preferred: str = "Impact") -> str:
-    """Find a clean, bold system font on macOS or Linux."""
+    """Find a clean, bold system font on Windows, macOS, or Linux."""
     candidates = [
+        # Windows
+        "C:/Windows/Fonts/impact.ttf",
+        "C:/Windows/Fonts/ariblk.ttf",
+        "C:/Windows/Fonts/arialbd.ttf",
+        "C:/Windows/Fonts/arial.ttf",
+        # macOS
         "/System/Library/Fonts/Supplemental/Impact.ttf",
         "/System/Library/Fonts/Supplemental/Arial Black.ttf",
         "/System/Library/Fonts/Supplemental/Arial Bold.ttf",
         "/System/Library/Fonts/Supplemental/Arial Rounded Bold.ttf",
         "/System/Library/Fonts/Helvetica.ttc",
         "/Library/Fonts/Impact.ttf",
+        # Linux
         "/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf",
+        "/usr/share/fonts/truetype/liberation/LiberationSans-Bold.ttf",
     ]
     for c in candidates:
         if Path(c).exists():

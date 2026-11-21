@@ -33,6 +33,7 @@ import sys
 import tempfile
 from pathlib import Path
 from datetime import datetime
+from typing import Optional, List, Dict, Any, Tuple
 
 # ─── Directory layout (skill §14) ─────────────────────────────────────────────
 BASE        = Path(__file__).parent
@@ -420,7 +421,8 @@ def score(transcript_result: dict, config: dict) -> list[ClipCandidate]:
     provider  = config["provider"]
 
     print(f"\n[4/8] 🧠  Scoring highlights (up to {max_clips}, {min_dur}–{max_dur}s, "
-          f"min_score={min_score}, provider={provider}) …")
+          f"min_score={min_score}, provider={provider}"
+          f"{', 👁️ SOTA Multimodal Gemini 2.0 Video Analysis' if config.get('multimodal') else ''}) …")
 
     candidates = score_highlights(
         transcript_segments=transcript_result["segments"],
@@ -434,6 +436,8 @@ def score(transcript_result: dict, config: dict) -> list[ClipCandidate]:
             "max_duration"  : max_dur,
             "min_score"     : min_score,
             "provider"      : provider,
+            "multimodal"    : config.get("multimodal", False),
+            "video_path"    : config.get("video_path"),
         },
     )
     print(f"    ✓  {len(candidates)} highlight(s) passed min_score={min_score}")
@@ -792,7 +796,13 @@ def render_clips(source: Path, candidates: list[ClipCandidate],
             viral_name = final_path.name.replace(".mp4", "_VIRAL_MASTER.mp4")
             viral_path = out_dir / viral_name
             try:
-                apply_viral_master_suite(final_path, viral_path, transition_pack=t_pack, title=clip_full_title)
+                apply_viral_master_suite(
+                    final_path,
+                    viral_path,
+                    transition_pack=t_pack,
+                    title=clip_full_title,
+                    isolate_vocals=config.get("isolate_vocals", False),
+                )
                 print(f"    🚀 Viral Master Suite (AI Director & Editing Rules Applied | Mode: {t_pack}) → {viral_name}")
                 final_path = viral_path
             except Exception as ve:
@@ -1107,6 +1117,11 @@ def main():
                    help="Framing mode when --vertical is set (auto_face=YuNet face tracking, blur_bg=blurred 9:16 background, facecam_stack=gameplay+facecam stack, center_crop=direct)")
     p.add_argument("--no-scene-detect", action="store_true",
                    help="Disable PySceneDetect adaptive shot boundary alignment")
+    # ── SOTA Multimodal & Audio Enhancements ──────────────────────────────────
+    p.add_argument("--multimodal", action="store_true",
+                   help="SOTA Multimodal Gemini 2.0 Flash analysis: uploads proxy video directly to detect visual physical actions, gestures & visual hooks alongside transcript")
+    p.add_argument("--isolate-vocals", action="store_true",
+                   help="Use Meta Demucs AI to isolate dialogue and strip copyrighted background music/noise")
     # ── GTA 6 & Gaming options (GTA6_LIVE_CLIPPING_SKILL) ──────────────────────
     p.add_argument("--gta6", "--gameplay", dest="gta6", action="store_true",
                    help="Enable GTA 6 / Live Gaming moment taxonomy, spoiler handling, and gaming layout")
@@ -1136,6 +1151,8 @@ def main():
         "facecam_roi"   : [int(x.strip()) for x in args.facecam_roi.split(",")] if args.facecam_roi else [1440, 810, 480, 270],
         "music_safe"    : args.music_safe,
         "spoiler_check" : args.spoiler_check,
+        "multimodal"    : args.multimodal,
+        "isolate_vocals": args.isolate_vocals,
     }
 
     print("=" * 64)
@@ -1148,6 +1165,7 @@ def main():
     # 1 — Download
     source, vid, title, total_dur = download(args.url)
     stem = vid   # use video id as the stable stem
+    config["video_path"] = str(source)
 
     # 2 — Probe  (never skip; skill §0.2)
     probe_info = probe(source)
@@ -1156,6 +1174,24 @@ def main():
 
     # 3 — Transcribe
     transcript = transcribe(source, model_size=args.model, total_duration=total_dur)
+
+    # 3.5 — SOTA Adaptive AI Editorial Diagnosis
+    from engine.editorial_director import AdaptiveEditorialDirector
+    print("\n[AI Director] 🎬 Diagnosing video DNA across all content genres …")
+    recipe = AdaptiveEditorialDirector.diagnose_video_dna(source, transcript, probe_info)
+    print(f"    • Detected Genre:   {recipe.genre.value.upper()} (Confidence: {recipe.confidence * 100:.0f}%)")
+    print(f"    • Editorial Recipe: Framing={recipe.framing_mode} | Subtitles={recipe.caption_style} | Transitions={recipe.transition_pack}")
+    print(f"    • Director Reason:  {recipe.rationale}")
+
+    # Adaptively apply recipe parameters unless explicitly customized
+    if args.framing == "auto_face" and recipe.framing_mode:
+        config["framing"] = recipe.framing_mode if args.vertical else "none"
+    if args.caption_style == "hormozi" and recipe.caption_style:
+        config["caption_style"] = recipe.caption_style
+    if args.transition_pack == "auto" and recipe.transition_pack:
+        config["transition_pack"] = recipe.transition_pack
+    if not args.isolate_vocals and recipe.enable_vocal_isolation:
+        config["isolate_vocals"] = True
 
     # 4 — Score (4-dimension virality via engine)
     candidates = score(transcript, config)

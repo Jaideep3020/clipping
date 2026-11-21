@@ -1,12 +1,15 @@
-# 🎬 ClipForge — SOTA AI Video Clipping & Viral Reach Studio
+# 🎬 ClipForge — SOTA AI Video Clipping & Autonomous Editorial Studio
 
 > A state-of-the-art open-source video clipping and viral growth suite powered by:
-> - **OpenCV YuNet Deep Learning** — Real-time neural face detection & active speaker tracking for smart 9:16 vertical auto-cropping (no more cutoff speakers!).
+> - **Adaptive AI Editorial Director** — Autonomous Video DNA analysis classifying footage into 6 archetypes (Podcasts, Solo Talkers, Gaming, Keynotes, Sports, General) to automatically configure framing, cut frequency, punch zooms, and typography.
+> - **Active Speaker Detection (ASD) & OpenCV YuNet** — Real-time neural face detection and mouth-movement variance tracking for smart 9:16 vertical auto-framing on whoever is currently speaking.
+> - **Gemini 2.0 Flash Multimodal Vision** — Direct video proxy ingestion to identify visual viral hooks, physical comedy, action stunts, and screen dynamics beyond raw transcript text.
+> - **Meta Demucs AI Vocal Isolation** — Neural source separation (`htdemucs`) removing copyrighted background tracks, crowd chatter, and studio hum.
 > - **PySceneDetect (`scenedetect`)** — Adaptive camera shot boundary detection so cuts snap to natural camera transitions instead of awkward visual shot slivers.
-> - **SupoClip 4D Virality Framework (`FujiwaraChoki/supoclip`)** — 4-Dimension Virality Matrix (Hook, Engagement, Value, Shareability), windowed chunking, boundary snapping, and high-CTR hook titles.
 > - **Dynamic Word-by-Word Viral Subtitles** — Real-time animated karaoke captions with active word highlighting in **Alex Hormozi** (neon yellow), **MrBeast** (electric green), and **Neon** (cyan) styles.
 > - **Retention Engineering** — 0–4s Top Hook Headline cards, Blurred Background vertical reframing, and Mobile Vocal Punch audio mastering.
 > - **ClipForge Web Studio UI** — Full-featured Gradio dark-mode studio with real-time progress tracking, live scorecard tables, and instant video preview.
+> - **ECC (Everything Claude Code) Integration** — Ready-to-use agent workflows, skills (`video-editing`, `videodb`, `remotion-video-creation`), and engineering rules.
 
 ---
 
@@ -24,13 +27,27 @@ ClipForge requires standard media binaries and Python 3.10+:
 
 For step-by-step cross-platform setup and troubleshooting, see **[SETUP_GUIDE.md](SETUP_GUIDE.md)**.
 
+### ⚡ 1-Click Automated Setup
+
+- **Windows (PowerShell)**:
+  ```powershell
+  powershell -ExecutionPolicy Bypass -File .\setup.ps1
+  ```
+- **macOS / Linux (Bash)**:
+  ```bash
+  bash setup.sh
+  ```
+
 ---
 
 ## ⚡ SOTA Open-Source Stack Breakdown
 
 | SOTA Tool | Role in Pipeline | Why It Delivers Better Output |
 |---|---|---|
-| **OpenCV YuNet (`FaceDetectorYN`)** | Active Speaker Tracking & Auto-Crop | Naive center-crop cuts off side-guests or co-hosts. YuNet is a modern deep-learning face detector (227KB) that tracks the speaker's face across frames with Exponential Moving Average (EMA) smoothing for cinematic vertical camera framing. |
+| **Adaptive AI Editorial Director** | Autonomous Video DNA Classifier | Classifies content into 6 archetypes (Podcasts, Solo Talkers, Gaming, Keynotes, Sports, General) to tailor pacing, punch zooms, vocal isolation, framing, and subtitle styling. |
+| **OpenCV YuNet (`FaceDetectorYN`)** | Active Speaker Tracking & Auto-Crop | Naive center-crop cuts off side-guests or co-hosts. YuNet tracks speaker face and mouth motion variance across frames with Exponential Moving Average (EMA) smoothing for cinematic vertical camera framing on the active speaker. |
+| **Meta Demucs AI (`htdemucs`)** | Dialogue & Vocal Isolation | Strips away background restaurant/studio noise and copyrighted background music tracks, isolating crystal-clear speech for mobile vocal punch. |
+| **Gemini 2.0 Flash Multimodal** | Video Action & Physical Virality Scoring | Uploads video proxies to detect non-verbal viral hooks, physical action, gestures, visual comedy, and stunts that text-only transcript scoring misses. |
 | **PySceneDetect (`AdaptiveDetector`)** | Shot Boundary Alignment | When an LLM cuts on transcript audio, speech often starts 0.5s before/after a camera switch. PySceneDetect finds visual shot cuts and snaps the clip boundary to the nearest visual transition, preventing 0.5-second visual flashes from previous scenes. |
 | **Pillow + QuickTime RLE Alpha** | Kinetic Word-by-Word Subtitles | Overcomes standard FFmpeg `libass` compilation limitations by rendering 670+ FPS transparent RGBA typography with active word highlights, drop shadows, and heavy black strokes, compositing losslessly via FFmpeg's native `overlay` filter. |
 | **faster-whisper / Whisper** | Word-Level Forced Alignment | Millisecond-accurate word boundaries ensure cuts never slice mid-syllable or mid-breath. |
@@ -168,17 +185,25 @@ clipping/
 ├── pipeline.py                ← Automated CLI pipeline with SOTA flags
 ├── clipper.py                 ← Interactive 6-stage chapter clipper CLI
 ├── requirements.txt           ← SOTA Dependencies (PySceneDetect, OpenCV, Gradio, Whisper)
-├── setup.sh                   ← Automated system probe & weights downloader
+├── setup.sh                   ← Automated system probe & weights downloader (Linux/macOS)
+├── setup.ps1                  ← Automated 1-click Windows PowerShell installer
 │
 ├── engine/                    ← Core AI & SOTA Computer Vision Engine
 │   ├── __init__.py
-│   ├── clipper_engine.py      ← SupoClip 4D Virality scoring & windowed chunking
+│   ├── editorial_director.py  ← Adaptive AI Editorial Director (Video DNA archetype routing)
+│   ├── clipper_engine.py      ← Gemini 2.0 Multimodal & SupoClip 4D Virality scoring
 │   ├── gta6_clipping.py       ← GTA 6 Moment taxonomy, facecam stack, spoilers & music safety
-│   ├── face_tracker.py        ← SOTA YuNet Neural Face Tracker & Dynamic 9:16 Auto-Cropper
+│   ├── face_tracker.py        ← Active Speaker Detection (ASD) & YuNet Face Auto-Cropper
 │   ├── scene_detector.py      ← SOTA PySceneDetect Adaptive Shot Cut Alignment
 │   ├── viral_subtitles.py     ← Word-by-word dynamic karaoke subtitle engine
+│   ├── viral_enhancer.py      ← Meta Demucs vocal isolation, pattern-interrupt punch zooms
 │   ├── viral_editor.py        ← Top hook banner, blurred background reframing, vocal punch
 │   └── face_detection_yunet.onnx ← YuNet Deep Learning Model Weights (227KB)
+│
+├── .agents/                   ← ECC (Everything Claude Code) Rules, Agents & Skills
+│   ├── agents/                ← 60+ domain agents (planner, code-reviewer, etc.)
+│   ├── rules/                 ← Coding, testing, and security standards
+│   └── skills/                ← Video editing, VideoDB, Remotion, and quality skills
 │
 ├── ui/                        ← Web Studio Frontend
 │   ├── __init__.py

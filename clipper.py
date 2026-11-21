@@ -91,8 +91,20 @@ def stage1_env_check():
     print(f"  {'✅' if has_subs else '⚠ '}  subtitles filter  {'available' if has_subs else 'not in standard ffmpeg (needs ffmpeg-full)'}")
 
     # Python deps
-    for pkg, pip_name in [("yt_dlp", "yt-dlp"), ("google.generativeai", "google-generativeai"),
-                           ("openai", "openai")]:
+    # Check google genai (modern google.genai preferred, fallback to google.generativeai)
+    has_genai = False
+    for g_pkg in ("google.genai", "google.generativeai"):
+        try:
+            __import__(g_pkg)
+            has_genai = True
+            print(f"  ✅  {g_pkg:<20}")
+            break
+        except ImportError:
+            continue
+    if not has_genai:
+        print(f"  ⚠   {'google-genai':<20} not installed  → pip install google-genai")
+
+    for pkg, pip_name in [("yt_dlp", "yt-dlp"), ("openai", "openai")]:
         try:
             __import__(pkg)
             print(f"  ✅  {pkg:<20}")

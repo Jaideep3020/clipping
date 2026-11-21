@@ -167,34 +167,124 @@ def build_virality_prompt(
 # ---------------------------------------------------------------------------
 
 def _call_gemini(prompt: str, api_key: str, model_name: str = "gemini-2.0-flash") -> str:
-    """Call Gemini API and return the raw text response."""
+    """Call Gemini API using modern google.genai (or legacy google.generativeai fallback)."""
+    # 1. Try modern official google-genai SDK
+    try:
+        from google import genai
+        client = genai.Client(api_key=api_key)
+        candidate_models = [model_name, "gemini-2.0-flash", "gemini-1.5-flash"]
+        for m in candidate_models:
+            try:
+                response = client.models.generate_content(
+                    model=m,
+                    contents=prompt,
+                )
+                if response.text:
+                    return response.text
+            except Exception:
+                continue
+    except ImportError:
+        pass
+
+    # 2. Fallback to legacy google.generativeai
     try:
         import google.generativeai as genai  # type: ignore
+        genai.configure(api_key=api_key)
+        candidate_models = [model_name, "gemini-2.0-flash", "gemini-1.5-flash"]
+        last_err = None
+        for m in candidate_models:
+            try:
+                model = genai.GenerativeModel(m)
+                response = model.generate_content(
+                    prompt,
+                    generation_config=genai.GenerationConfig(
+                        temperature=0.3,
+                        max_output_tokens=8192,
+                    ),
+                )
+                return response.text
+            except Exception as exc:
+                last_err = exc
+                continue
+        if last_err:
+            raise last_err
     except ImportError as exc:
         raise RuntimeError(
-            "google-generativeai is not installed. Run: pip install google-generativeai"
+            "Neither google-genai nor google-generativeai is installed. Run: pip install google-genai"
         ) from exc
 
-    genai.configure(api_key=api_key)
-    candidate_models = [model_name, "gemini-2.0-flash", "gemini-1.5-flash"]
-    last_err = None
-    for m in candidate_models:
-        try:
-            model = genai.GenerativeModel(m)
-            response = model.generate_content(
-                prompt,
-                generation_config=genai.GenerationConfig(
-                    temperature=0.3,
-                    max_output_tokens=8192,
-                ),
-            )
-            return response.text
-        except Exception as exc:
-            last_err = exc
-            continue
-    if last_err:
-        raise last_err
     return ""
+
+
+def _call_gemini_multimodal(
+    video_path: Path,
+    prompt: str,
+    api_key: str,
+    model_name: str = "gemini-2.0-flash",
+) -> str:
+    """
+    State-of-the-Art Multimodal Video Virality Scoring using Gemini 2.0 Flash Files API.
+    Uploads a lightweight proxy of the video for joint visual + audio viral moment detection.
+    """
+    import subprocess
+    import tempfile
+    import time
+    try:
+        from google import genai
+    except ImportError:
+        raise RuntimeError("google-genai is required for multimodal analysis. Run: pip install google-genai")
+
+    client = genai.Client(api_key=api_key)
+    video_path = Path(video_path)
+    if not video_path.exists():
+        raise FileNotFoundError(f"Video path not found: {video_path}")
+
+    upload_path = video_path
+    temp_proxy = None
+
+    # Compress to 480p fast proxy if larger than 50MB to upload in seconds
+    if video_path.stat().st_size > 50 * 1024 * 1024:
+        temp_proxy = Path(tempfile.mktemp(suffix="_gemini_proxy.mp4"))
+        print("  ⚡ Preparing lightweight video proxy for Gemini 2.0 Flash multimodal upload...")
+        subprocess.run([
+            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
+            "-i", str(video_path),
+            "-vf", "scale=640:-2", "-r", "12",
+            "-c:v", "libx264", "-crf", "32", "-preset", "veryfast",
+            "-c:a", "aac", "-b:a", "64k",
+            str(temp_proxy)
+        ], stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+        if temp_proxy.exists() and temp_proxy.stat().st_size > 0:
+            upload_path = temp_proxy
+
+    print(f"  ☁ Uploading video ({upload_path.stat().st_size / (1024*1024):.1f} MB) to Gemini 2.0 Flash...")
+    video_file = client.files.upload(file=str(upload_path))
+
+    # Wait for processing
+    while video_file.state == "PROCESSING":
+        time.sleep(3)
+        video_file = client.files.get(name=video_file.name)
+
+    if video_file.state != "ACTIVE":
+        if temp_proxy and temp_proxy.exists():
+            temp_proxy.unlink(missing_ok=True)
+        raise RuntimeError(f"Gemini video file processing failed: {video_file.state}")
+
+    try:
+        print("  🧠 Gemini 2.0 Flash analyzing visual gestures, physical action, and audio hooks...")
+        response = client.models.generate_content(
+            model=model_name,
+            contents=[video_file, prompt]
+        )
+        return response.text or ""
+    finally:
+        try:
+            client.files.delete(name=video_file.name)
+        except Exception:
+            pass
+        if temp_proxy and temp_proxy.exists():
+            temp_proxy.unlink(missing_ok=True)
+
 
 
 def _call_openai(prompt: str, api_key: str) -> str:
@@ -278,6 +368,12 @@ def _llm_generate(prompt: str, config: dict) -> str:
         if prov == "gemini" and gemini_key:
             try:
                 g_model = config.get("gemini_model", "gemini-2.0-flash")
+                # Check for SOTA Multimodal Video Analysis mode
+                video_file_input = config.get("video_path")
+                if config.get("multimodal") and video_file_input and Path(video_file_input).exists():
+                    logger.info("Calling Multimodal Gemini (%s) with video upload …", g_model)
+                    return _call_gemini_multimodal(Path(video_file_input), prompt, gemini_key, model_name=g_model)
+
                 logger.info("Calling Gemini (%s) …", g_model)
                 return _call_gemini(prompt, gemini_key, model_name=g_model)
             except Exception as exc:

@@ -1,0 +1,13 @@
+{
+  "mcpServers": {
+    "ecc-memory": {
+      "command": "node",
+      "args": [
+        "C:\\Users\\jaide\\OneDrive\\Desktop\\clipping\\.agents\\scripts\\memory-mcp.mjs"
+      ],
+      "env": {
+        "ECC_MEMORY_HARNESS": "antigravity"
+      }
+    }
+  }
+}

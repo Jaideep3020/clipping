@@ -133,6 +133,8 @@ def run_auto_clip(
     gta6: bool,
     music_safe: bool,
     dry_run: bool,
+    multimodal: bool = False,
+    isolate_vocals: bool = False,
     progress=gr.Progress(),
 ) -> Iterator[Tuple[str, List[List[Any]], Optional[str]]]:
     """Stream execution of pipeline.py and yield real-time updates."""
@@ -191,6 +193,10 @@ def run_auto_clip(
         cmd.append("--music-safe")
     if dry_run:
         cmd.append("--dry-run")
+    if multimodal:
+        cmd.append("--multimodal")
+    if isolate_vocals:
+        cmd.append("--isolate-vocals")
 
     process = subprocess.Popen(
         cmd,
@@ -827,6 +833,10 @@ def create_app() -> gr.Blocks:
                             dry_run_cb = gr.Checkbox(label="📋 Dry Run (Plan Only)", value=False)
 
                         with gr.Row():
+                            multimodal_cb = gr.Checkbox(label="👁️ Gemini 2.0 Multimodal (Video Vision)", value=False, info="Uploads proxy video for physical action & visual hook detection")
+                            isolate_vocals_cb = gr.Checkbox(label="🎙️ Meta Demucs AI Dialogue Isolation", value=False, info="Separates human speech and removes background music/noise")
+
+                        with gr.Row():
                             caption_style_dropdown = gr.Dropdown(
                                 label="Viral Subtitle Preset",
                                 choices=["hormozi", "mrbeast", "neon", "minimal"],
@@ -890,6 +900,8 @@ def create_app() -> gr.Blocks:
                         gta6_cb,
                         music_safe_cb,
                         dry_run_cb,
+                        multimodal_cb,
+                        isolate_vocals_cb,
                     ],
                     outputs=[status_box, output_table, preview_player],
                 )
