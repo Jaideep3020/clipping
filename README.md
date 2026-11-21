@@ -10,6 +10,22 @@
 
 ---
 
+## 📋 System Requirements & Dependencies
+
+ClipForge requires standard media binaries and Python 3.10+:
+
+| Category | Components | Installation / Details |
+|---|---|---|
+| **System Binaries** | `ffmpeg`, `ffprobe`, `yt-dlp` | `brew install ffmpeg yt-dlp` (macOS) or `sudo apt install ffmpeg` (Ubuntu) |
+| **Python Runtime** | Python `3.10`, `3.11`, or `3.12` | Virtual environment managed via `.venv` |
+| **Core Libraries** | `openai-whisper`, `torch`, `opencv-python`, `scenedetect`, `Pillow`, `gradio` | Full list pinned in `requirements.txt` |
+| **Neural Weights** | `engine/face_detection_yunet.onnx` (227 KB) | Pre-bundled in repository |
+| **Hardware Encoders** | Apple VideoToolbox (`h264_videotoolbox`), NVIDIA NVENC (`h264_nvenc`), or CPU (`libx264`) | Auto-detected with graceful software fallback |
+
+For step-by-step cross-platform setup and troubleshooting, see **[SETUP_GUIDE.md](SETUP_GUIDE.md)**.
+
+---
+
 ## ⚡ SOTA Open-Source Stack Breakdown
 
 | SOTA Tool | Role in Pipeline | Why It Delivers Better Output |
