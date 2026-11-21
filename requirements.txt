@@ -1,0 +1,24 @@
+# Core Video & Audio Processing
+yt-dlp>=2024.1.1
+faster-whisper>=1.0.0
+openai-whisper>=20231117
+
+# SOTA Computer Vision & Visual Shot Detection
+opencv-python>=4.8.0
+scenedetect>=0.6.0
+Pillow>=10.0.0
+
+# AI Scoring & Translation (at least one required)
+google-generativeai>=0.7.0      # → GEMINI_API_KEY (Recommended)
+openai>=1.30.0                  # → OPENAI_API_KEY (Fallback)
+
+# Web Studio UI
+gradio>=5.0.0
+fastapi>=0.115.0
+uvicorn>=0.30.0
+
+# GTA 6 & Live Stream Clipping Engine
+numpy>=1.24.0
+# streamlink>=6.0.0        # Optional: For live Twitch/Kick rolling capture
+# pytesseract>=0.3.10       # Optional: For HUD OCR (WASTED/BUSTED detection)
+

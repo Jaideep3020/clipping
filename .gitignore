@@ -1,0 +1,61 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+.venv/
+*.egg-info/
+dist/
+build/
+
+# Media & Datasets (Excluded so repo works seamlessly on any laptop)
+source/*
+!source/.gitkeep
+output/*
+!output/.gitkeep
+work/*
+!work/.gitkeep
+downloads/*
+!downloads/.gitkeep
+clips/*
+!clips/.gitkeep
+transcripts/*
+!transcripts/.gitkeep
+youtube-clips/*
+!youtube-clips/.gitkeep
+
+# Media files
+*.mp4
+*.mkv
+*.webm
+*.mov
+*.avi
+*.vtt
+*.srt
+*.wav
+*.mp3
+*.m4a
+*.aac
+
+# Whisper & AI Model Cache
+.cache/
+*.pt
+
+# OS & IDE
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+.idea/
+.vscode/
+
+# Environment Variables & Secrets
+.env
+.env.local
+*.key
