@@ -508,11 +508,25 @@ def _segments_to_srt(segments: list[dict], clip_start: float, clip_end: float) -
 
 
 def _extract_all_words(segments: list[dict]) -> list[dict]:
-    """Collect flat list of word-level timestamps from whisper segments."""
+    """Collect flat list of word-level timestamps from whisper segments with linear interpolation fallback."""
     words = []
     for s in segments:
-        for w in s.get("words", []):
-            words.append({"word": w["word"], "start": float(w["start"]), "end": float(w["end"])})
+        seg_words = s.get("words", [])
+        if seg_words:
+            for w in seg_words:
+                words.append({"word": w["word"], "start": float(w["start"]), "end": float(w["end"])})
+        elif s.get("text"):
+            tokens = s["text"].strip().split()
+            if tokens:
+                s_start = float(s.get("start", 0))
+                s_end = float(s.get("end", s_start + max(1.0, len(tokens) * 0.35)))
+                step = (s_end - s_start) / len(tokens)
+                for idx, tok in enumerate(tokens):
+                    words.append({
+                        "word": tok,
+                        "start": s_start + idx * step,
+                        "end": s_start + (idx + 1) * step,
+                    })
     return words
 
 
@@ -734,50 +748,53 @@ def render_clips(source: Path, candidates: list[ClipCandidate],
         # ── Caption burning (--captions, skill §14 & requirements) ───────────
         final_path = out_path
         if do_captions:
-            # 1. Obtain clip SRT using scripts/extract_subtitles.py (if VTT exists) or whisper segments
-            vtt_cands = sorted(list(SOURCE_DIR.glob(f"*{stem}*.vtt")) + list(WORK_DIR.glob(f"*{stem}*.vtt")))
-            clip_srt = WORK_DIR / f"{stem}_{i:02d}.srt"
-            extracted_srt = False
-            if vtt_cands:
-                vtt_file = vtt_cands[0]
-                extract_script = BASE / "scripts" / "extract_subtitles.py"
+            caption_style = config.get("caption_style", "hormozi")
+            all_words = _extract_all_words(transcript_segments)
+            burned_dynamic = False
+
+            if all_words:
+                viral_sub_name = out_name.replace(".mp4", f"_{caption_style}.mp4")
+                viral_sub_path = out_dir / viral_sub_name
                 try:
-                    r_ext = subprocess.run(
-                        [sys.executable, str(extract_script), str(vtt_file), str(start), str(end), str(clip_srt)],
-                        capture_output=True, text=True
-                    )
-                    if r_ext.returncode == 0 and clip_srt.exists() and clip_srt.stat().st_size > 0:
-                        extracted_srt = True
-                except Exception:
-                    pass
+                    _burn_captions(final_path, all_words, viral_sub_path, start, end, style=caption_style)
+                    if viral_sub_path.exists() and viral_sub_path.stat().st_size > 0:
+                        print(f"    ✨ Dynamic '{caption_style}' subtitles burned → {viral_sub_name}")
+                        final_path = viral_sub_path
+                        burned_dynamic = True
+                except Exception as ve:
+                    print(f"    ⚠ Dynamic caption error ({str(ve)[:80]}), falling back to standard subtitles")
 
-            if not extracted_srt:
-                srt_text = _segments_to_srt(transcript_segments, start, end)
-                clip_srt.write_text(srt_text, encoding="utf-8")
+            if not burned_dynamic:
+                # Fallback to SRT subtitle burner
+                vtt_cands = sorted(list(SOURCE_DIR.glob(f"*{stem}*.vtt")) + list(WORK_DIR.glob(f"*{stem}*.vtt")))
+                clip_srt = WORK_DIR / f"{stem}_{i:02d}.srt"
+                extracted_srt = False
+                if vtt_cands:
+                    vtt_file = vtt_cands[0]
+                    extract_script = BASE / "scripts" / "extract_subtitles.py"
+                    try:
+                        r_ext = subprocess.run(
+                            [sys.executable, str(extract_script), str(vtt_file), str(start), str(end), str(clip_srt)],
+                            capture_output=True, text=True
+                        )
+                        if r_ext.returncode == 0 and clip_srt.exists() and clip_srt.stat().st_size > 0:
+                            extracted_srt = True
+                    except Exception:
+                        pass
 
-            # 2. Burn captions onto clip
-            captioned_name = out_name.replace(".mp4", "_captioned.mp4")
-            captioned_path = out_dir / captioned_name
-            try:
-                _burn_captions_srt(final_path, clip_srt, captioned_path)
-                if captioned_path.exists() and captioned_path.stat().st_size > 0:
-                    print(f"    🔡 Captions burned from {clip_srt.name} → {captioned_name}")
-                    final_path = captioned_path
-            except Exception as ce:
-                print(f"    ⚠  Caption burn error: {str(ce)[:120]}")
+                if not extracted_srt:
+                    srt_text = _segments_to_srt(transcript_segments, start, end)
+                    clip_srt.write_text(srt_text, encoding="utf-8")
 
-        # Optional dynamic karaoke subtitles preset
-        caption_style = config.get("caption_style", "hormozi")
-        all_words = _extract_all_words(transcript_segments)
-        if config.get("viral_captions") and all_words:
-            viral_sub_name = out_name.replace(".mp4", "_viral_sub.mp4")
-            viral_sub_path = out_dir / viral_sub_name
-            try:
-                _burn_captions(final_path, all_words, viral_sub_path, start, end, style=caption_style)
-                print(f"    ✨ Dynamic '{caption_style}' subtitles burned → {viral_sub_name}")
-                final_path = viral_sub_path
-            except Exception as ce:
-                print(f"    ⚠  Viral caption burn error: {str(ce)[:120]}")
+                captioned_name = out_name.replace(".mp4", "_captioned.mp4")
+                captioned_path = out_dir / captioned_name
+                try:
+                    _burn_captions_srt(final_path, clip_srt, captioned_path)
+                    if captioned_path.exists() and captioned_path.stat().st_size > 0:
+                        print(f"    🔡 Captions burned from {clip_srt.name} → {captioned_name}")
+                        final_path = captioned_path
+                except Exception as ce:
+                    print(f"    ⚠  Caption burn error: {str(ce)[:120]}")
 
         if config.get("hook_banner") and clip.hook_title:
             banner_name = out_name.replace(".mp4", "_hook.mp4")
