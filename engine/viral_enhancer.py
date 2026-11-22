@@ -307,91 +307,27 @@ def apply_viral_master_suite(
     isolate_vocals: bool = False,
 ) -> Path:
     """
-    Apply full viral editing suite to a vertical short:
-    1. Camera Cut & Pacing Analysis (PySceneDetect)
-    2. Dynamic Pattern-Interrupt Punch Zooms
-    3. Optical White Flash Transitions
-    4. Synthetic SFX Layer (808 Sub Boom + Whooshes) mixed with vocal audio
-    5. OLED Mobile Color Grade & Vignette
-    6. Animated Neon Retention Progress Bar
-    7. Optional Floating Viral Callout Badge
+    Apply full professional viral master editing suite to a vertical short:
+    1. Audio Intelligence & RMS peak analysis (transient onsets, excitement spikes)
+    2. Camera Cut & Pacing Analysis (PySceneDetect)
+    3. Dynamic Non-Repeating Transitions (Whips, Punch Zooms, Cross Zooms, Shakes, Glitches, Flashes)
+    4. 2-4s Pattern-Interrupt Continuous Motion Zooms
+    5. Contextual Sound Design Layer (808 Hook Boom + Transition Whooshes + Peak Hits)
+    6. Cinematic Color Grading (Teal & Orange / Hyper Vibrant / Warm Golden)
+    7. Atmospheric 35mm Film Grain & Impact Chromatic Aberration
+    8. Animated Neon Retention Progress Bar
+    9. Mobile Audio Mastering (-14 LUFS, Highpass 75Hz)
     """
-    input_video = Path(input_video)
-    output_video = Path(output_video)
-    output_video.parent.mkdir(parents=True, exist_ok=True)
+    from .smart_editor import apply_smart_autonomous_edit
 
-    # Probe duration and dimensions
-    r_probe = subprocess.run([
-        "ffprobe", "-v", "error",
-        "-show_entries", "format=duration:stream=width,height",
-        "-of", "json", str(input_video)
-    ], capture_output=True, text=True, check=True)
-    info = json.loads(r_probe.stdout)
-
-    v_stream = next((s for s in info.get("streams", []) if s.get("width")), {})
-    width = int(v_stream.get("width", 1080))
-    height = int(v_stream.get("height", 1920))
-    duration = float(info.get("format", {}).get("duration", 0))
-
-    # Detect camera cuts
-    print("  🔍 Detecting visual camera cuts and shot boundaries …")
-    cuts = detect_camera_cuts(input_video, adaptive_threshold=3.0, min_scene_len_sec=0.7)
-    print(f"  ✓ Found {len(cuts)} shot transitions in clip.")
-
-    with tempfile.TemporaryDirectory(prefix="viral_enhancer_") as tmp_dir:
-        tmp_path = Path(tmp_dir)
-
-        # Step 1: Generate Synthetic SFX layer (808 Boom + Whooshes)
-        print("  🔊 Generating high-impact synthetic SFX layer (Sub-Bass Drop + Whooshes) …")
-        sfx_wav = tmp_path / "sfx.m4a"
-        generate_viral_sfx(duration, cuts, sfx_wav)
-
-        # Step 2: Build visual filter chain
-        print("  ⚡ Building dynamic punch zooms, white flashes, progress bar & vibrance grade …")
-        v_filters = build_viral_visual_filters(
-            duration=duration,
-            cut_timestamps=cuts,
-            width=width,
-            height=height,
-            progress_bar_color=progress_bar_color,
-            transition_pack=transition_pack,
-            title=title,
-        )
-
-        # Step 3: Composite Video + Vocal Audio + SFX in a single streamlined FFmpeg pass
-        print("  🎬 Rendering viral master composite …")
-        encoder_args = get_h264_encoder_args()
-
-        audio_input_idx = 0
-        extra_inputs = []
-        if isolate_vocals:
-            isolated_audio = tmp_path / "vocal_clean.wav"
-            if isolate_speech_demucs(input_video, isolated_audio):
-                extra_inputs = ["-i", str(isolated_audio)]
-                audio_input_idx = 2  # input 0 is video, 1 is sfx, 2 is clean vocal
-
-        cmd = [
-            "ffmpeg", "-hide_banner", "-loglevel", "error", "-y",
-            "-i", str(input_video),
-            "-i", str(sfx_wav),
-            *extra_inputs,
-            "-filter_complex",
-            f"[0:v]{v_filters}[v_out]; "
-            f"[{audio_input_idx}:a][1:a]amix=inputs=2:duration=first:weights=1.0 0.85[a_mix]; "
-            f"[a_mix]highpass=f=75,loudnorm=I=-14:TP=-1.5:LRA=9[a_out]",
-            "-map", "[v_out]",
-            "-map", "[a_out]",
-            *encoder_args,
-            "-pix_fmt", "yuv420p",
-            "-c:a", "aac", "-b:a", "192k",
-            "-movflags", "+faststart",
-            str(output_video),
-        ]
-
-        r = subprocess.run(cmd, capture_output=True, text=True, stdin=subprocess.DEVNULL)
-        if r.returncode != 0:
-            cmd_sw = fallback_cmd_to_libx264(cmd)
-            subprocess.run(cmd_sw, check=True, stdin=subprocess.DEVNULL)
-
-    print(f"  ✨ Viral Enhancement Suite Complete → {output_video.name}")
-    return output_video
+    return apply_smart_autonomous_edit(
+        input_video=input_video,
+        output_video=output_video,
+        title=title,
+        genre=None,  # auto-detected
+        color_grade=None,  # auto-detected
+        enable_sfx=True,
+        enable_overlays=True,
+        enable_progress_bar=True,
+        progress_bar_color=progress_bar_color,
+    )

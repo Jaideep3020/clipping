@@ -806,38 +806,26 @@ def render_clips(source: Path, candidates: list[ClipCandidate],
             except Exception as be:
                 print(f"    ⚠  Hook banner error: {str(be)[:120]}")
 
-        # ── Viral Enhancer & Transition Pack Suite ───────────────────────────
+        # ── Viral Enhancer & Dynamic Autonomous Editor Suite ───────────────────────────
         t_pack = config.get("transition_pack") or "auto"
         clip_full_title = f"{clip.title} {clip.hook_title}"
-        if config.get("viral_fx"):
-            viral_name = final_path.name.replace(".mp4", "_VIRAL_MASTER.mp4")
+        if config.get("viral_fx") or (t_pack and t_pack != "none"):
+            viral_name = final_path.name.replace(".mp4", "_PRO_EDIT.mp4")
             viral_path = out_dir / viral_name
             try:
-                apply_viral_master_suite(
-                    final_path,
-                    viral_path,
-                    transition_pack=t_pack,
+                from engine.smart_editor import apply_smart_autonomous_edit
+                apply_smart_autonomous_edit(
+                    input_video=final_path,
+                    output_video=viral_path,
                     title=clip_full_title,
-                    isolate_vocals=config.get("isolate_vocals", False),
+                    enable_sfx=True,
+                    enable_overlays=True,
+                    enable_progress_bar=True,
                 )
-                print(f"    🚀 Viral Master Suite (AI Director & Editing Rules Applied | Mode: {t_pack}) → {viral_name}")
+                print(f"    🚀 Autonomous Professional Edit (Dynamic Cuts, Zooms, Grading & SFX) → {viral_name}")
                 final_path = viral_path
             except Exception as ve:
-                print(f"    ⚠ Viral enhancer error: {str(ve)[:120]}")
-        elif t_pack and t_pack != "none":
-            trans_name = final_path.name.replace(".mp4", f"_trans_{t_pack}.mp4")
-            trans_path = out_dir / trans_name
-            try:
-                pack_to_use = t_pack
-                if pack_to_use == "auto":
-                    from engine.transition_director import TransitionDirector
-                    plan = TransitionDirector.plan_clip_strategy(title=clip_full_title, duration=dur)
-                    pack_to_use = "capcut_viral" if plan.genre == "cricket" else ("premiere_modern_2025" if plan.genre == "gaming" else "premiere_pro_all")
-                apply_transition_pack_to_video(final_path, trans_path, pack_name=pack_to_use, with_sfx=True)
-                print(f"    🎬 Transition Pack ({pack_to_use}) applied → {trans_name}")
-                final_path = trans_path
-            except Exception as te:
-                print(f"    ⚠ Transition pack error: {str(te)[:120]}")
+                print(f"    ⚠ Smart editor notice ({str(ve)[:120]}), retaining current cut")
 
         # ── GTA 6 & Gaming: Moments, Spoilers & Music Safety ──────────────────
         is_spoiler = False

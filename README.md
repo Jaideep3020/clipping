@@ -15,7 +15,12 @@
 
 ## 🌟 Key Highlights & SOTA Innovations
 
-- 🧠 **Adaptive AI Editorial Director (`engine/editorial_director.py`)**: Analyzes footage DNA to auto-classify videos into 6 archetypes (Podcasts, Solo Monologues, Gaming Livestreams, Keynotes, Sports Action, General Content) and dynamically choreographs framing, cut frequency, punch zooms, and typography without manual configuration.
+- 🧠 **Adaptive AI Editorial Director (`engine/editorial_director.py` & `engine/smart_editor.py`)**: Analyzes footage DNA to auto-classify videos into 6 archetypes (Podcasts, Solo Monologues, Gaming Livestreams, Keynotes, Sports Action, General Content) and dynamically choreographs framing, cut frequency, punch zooms, and typography without manual configuration.
+- 🎬 **Autonomous Professional AI Video Editor (`engine/smart_editor.py`)**: Replaces uniform single-transition editing with dynamic, non-repeating transitions (alternating whips, punch zooms, cross zooms, earthquake tremors, analog glitches, optical flashes) choreographing each cut individually like a professional human editor.
+- 🎵 **Audio Intelligence & Transient Peak Sync (`engine/audio_beat_sync.py`)**: Fast native RMS energy profiling to detect speech peaks, volume spikes, and excitement onsets—syncing punch zooms and accents to real audio peaks without hardcoded timestamps.
+- 🎨 **Cinematic Color Grading Engine (`engine/color_grading.py`)**: Algorithmic Hollywood & short-form color grading presets (Blockbuster Teal & Orange, Hyper Vibrant, Golden Hour, Moody Filmic, Clean Boost) with custom contrast S-curves and subtle focus vignettes.
+- 🔊 **Context-Aware Procedural Sound Design (`engine/smart_sfx_designer.py`)**: Synthesizes 48kHz audio effects mapped to specific transition types (whooshes, 808 sub-bass drops at 0-3s hook, glitch chirps, impact thuds) and detected speech transients.
+- 🎞️ **Atmospheric Film Overlays (`engine/overlay_effects.py`)**: Subtle 35mm organic film grain to eliminate digital banding, paired with impact RGB chromatic aberration on high-energy cuts.
 - 🎯 **Active Speaker Detection (ASD) & OpenCV YuNet (`engine/face_tracker.py`)**: Neural face detection with mouth-movement variance analysis to follow the active speaker across multi-guest podcasts with Exponential Moving Average (EMA) camera smoothing.
 - 👁️ **Gemini 2.0 Flash Multimodal Vision (`engine/clipper_engine.py`)**: Ingests compressed video proxies directly into Gemini 2.0 to detect physical stunts, visual comedy, non-verbal hooks, and on-screen action that text-only transcript scoring misses.
 - 🎙️ **Meta Demucs Neural Vocal Isolation (`engine/viral_enhancer.py`)**: Two-stem neural audio separation (`htdemucs`) removing copyrighted background tracks, crowd noise, and ambient hum for mobile vocal punch.
@@ -177,6 +182,12 @@ python pipeline.py "https://youtu.be/VIDEO_ID" --dry-run
 python scripts/generate_viral_pack.py "Six sixes from Harry Brook" "transcript excerpt or file path"
 ```
 
+### 7. Run Standalone Autonomous Pro Editor on Any Existing Clip
+Apply dynamic non-repeating transitions, audio-synced pattern interrupt zooms, cinematic color grading, contextual sound design, and 35mm film texture to any existing video:
+```bash
+python scripts/smart_edit.py clip.mp4 clip_PRO_EDIT.mp4 --color-grade teal_orange
+```
+
 ---
 
 ## 🧬 Adaptive Editorial Director: Content Archetypes
@@ -217,6 +228,12 @@ clipping/
 ├── setup.sh                   ← 1-click macOS/Linux Bash installer
 │
 ├── engine/                    ← Core AI & Computer Vision Engine
+│   ├── smart_editor.py        ← Master Autonomous Editor (Choreographs all dynamic post-production)
+│   ├── dynamic_transition_engine.py ← Non-Repeating Dynamic Transition Engine (Whips, zooms, glitches, flashes)
+│   ├── audio_beat_sync.py     ← Audio intelligence, RMS energy profiling & transient onset detection
+│   ├── color_grading.py       ← Cinematic color grading presets (Teal & Orange, Hyper Vibrant, etc.)
+│   ├── smart_sfx_designer.py  ← Procedural context-aware sound design & 808 hook impacts
+│   ├── overlay_effects.py     ← Atmospheric 35mm film grain & chromatic impact fringe
 │   ├── editorial_director.py  ← Adaptive AI Editorial Director (Video DNA archetype routing)
 │   ├── clipper_engine.py      ← Gemini 2.0 Multimodal & SupoClip 4D Virality scoring
 │   ├── face_tracker.py        ← Active Speaker Detection (ASD) & YuNet 9:16 Face Tracker
@@ -240,6 +257,7 @@ clipping/
 │   └── style.css              ← Custom dark neon studio stylesheet
 │
 ├── scripts/                   ← Standalone utility scripts
+│   ├── smart_edit.py          ← Standalone Autonomous Professional AI Video Editor
 │   ├── generate_viral_pack.py ← AI social copy, titles, hashtags & engagement CTAs
 │   ├── burn_viral_subtitles.py← Standalone subtitle & banner burner
 │   ├── vod_highlights.py      ← Audio dB + Twitch chat velocity highlight finder
