@@ -1,233 +1,273 @@
-# 🎬 ClipForge — SOTA AI Video Clipping & Autonomous Editorial Studio
+# 🎬 ClipForge — Autonomous AI Video Clipping & Viral Reach Studio
 
-> A state-of-the-art open-source video clipping and viral growth suite powered by:
-> - **Adaptive AI Editorial Director** — Autonomous Video DNA analysis classifying footage into 6 archetypes (Podcasts, Solo Talkers, Gaming, Keynotes, Sports, General) to automatically configure framing, cut frequency, punch zooms, and typography.
-> - **Active Speaker Detection (ASD) & OpenCV YuNet** — Real-time neural face detection and mouth-movement variance tracking for smart 9:16 vertical auto-framing on whoever is currently speaking.
-> - **Gemini 2.0 Flash Multimodal Vision** — Direct video proxy ingestion to identify visual viral hooks, physical comedy, action stunts, and screen dynamics beyond raw transcript text.
-> - **Meta Demucs AI Vocal Isolation** — Neural source separation (`htdemucs`) removing copyrighted background tracks, crowd chatter, and studio hum.
-> - **PySceneDetect (`scenedetect`)** — Adaptive camera shot boundary detection so cuts snap to natural camera transitions instead of awkward visual shot slivers.
-> - **Dynamic Word-by-Word Viral Subtitles** — Real-time animated karaoke captions with active word highlighting in **Alex Hormozi** (neon yellow), **MrBeast** (electric green), and **Neon** (cyan) styles.
-> - **Retention Engineering** — 0–4s Top Hook Headline cards, Blurred Background vertical reframing, and Mobile Vocal Punch audio mastering.
-> - **ClipForge Web Studio UI** — Full-featured Gradio dark-mode studio with real-time progress tracking, live scorecard tables, and instant video preview.
-> - **ECC (Everything Claude Code) Integration** — Ready-to-use agent workflows, skills (`video-editing`, `videodb`, `remotion-video-creation`), and engineering rules.
+[![Python 3.10+](https://img.shields.io/badge/python-3.10%20%7C%203.11%20%7C%203.12-blue.svg)](https://www.python.org/)
+[![OpenCV YuNet](https://img.shields.io/badge/face%20tracking-OpenCV%20YuNet%20%2B%20ASD-green.svg)](https://opencv.org/)
+[![Whisper](https://img.shields.io/badge/transcription-faster--whisper-orange.svg)](https://github.com/SYSTRAN/faster-whisper)
+[![Gemini 2.0 Flash](https://img.shields.io/badge/AI%20Vision-Gemini%202.0%20Multimodal-purple.svg)](https://ai.google.dev/)
+[![Meta Demucs](https://img.shields.io/badge/audio-Meta%20Demucs%20Vocal%20Isolation-red.svg)](https://github.com/facebookresearch/demucs)
+[![Gradio Studio](https://img.shields.io/badge/UI-Gradio%20Dark%20Studio-yellow.svg)](https://gradio.app/)
+[![ECC Integrated](https://img.shields.io/badge/ECC-Agent%20Harness%20Ready-brightgreen.svg)](https://github.com/affaan-m/ecc)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 
----
-
-## 📋 System Requirements & Dependencies
-
-ClipForge requires standard media binaries and Python 3.10+:
-
-| Category | Components | Installation / Details |
-|---|---|---|
-| **System Binaries** | `ffmpeg`, `ffprobe`, `yt-dlp` | `brew install ffmpeg yt-dlp` (macOS) or `sudo apt install ffmpeg` (Ubuntu) |
-| **Python Runtime** | Python `3.10`, `3.11`, or `3.12` | Virtual environment managed via `.venv` |
-| **Core Libraries** | `openai-whisper`, `torch`, `opencv-python`, `scenedetect`, `Pillow`, `gradio` | Full list pinned in `requirements.txt` |
-| **Neural Weights** | `engine/face_detection_yunet.onnx` (227 KB) | Pre-bundled in repository |
-| **Hardware Encoders** | Apple VideoToolbox (`h264_videotoolbox`), NVIDIA NVENC (`h264_nvenc`), or CPU (`libx264`) | Auto-detected with graceful software fallback |
-
-For step-by-step cross-platform setup and troubleshooting, see **[SETUP_GUIDE.md](SETUP_GUIDE.md)**.
-
-### ⚡ 1-Click Automated Setup
-
-- **Windows (PowerShell)**:
-  ```powershell
-  powershell -ExecutionPolicy Bypass -File .\setup.ps1
-  ```
-- **macOS / Linux (Bash)**:
-  ```bash
-  bash setup.sh
-  ```
+> **ClipForge** is a state-of-the-art autonomous video clipping suite that turns multi-hour YouTube videos, podcasts, gaming livestreams, and sports broadcasts into algorithm-optimized 9:16 vertical shorts (TikTok, YouTube Shorts, Instagram Reels) using cutting-edge deep learning and AI models.
 
 ---
 
-## ⚡ SOTA Open-Source Stack Breakdown
+## 🌟 Key Highlights & SOTA Innovations
 
-| SOTA Tool | Role in Pipeline | Why It Delivers Better Output |
-|---|---|---|
-| **Adaptive AI Editorial Director** | Autonomous Video DNA Classifier | Classifies content into 6 archetypes (Podcasts, Solo Talkers, Gaming, Keynotes, Sports, General) to tailor pacing, punch zooms, vocal isolation, framing, and subtitle styling. |
-| **OpenCV YuNet (`FaceDetectorYN`)** | Active Speaker Tracking & Auto-Crop | Naive center-crop cuts off side-guests or co-hosts. YuNet tracks speaker face and mouth motion variance across frames with Exponential Moving Average (EMA) smoothing for cinematic vertical camera framing on the active speaker. |
-| **Meta Demucs AI (`htdemucs`)** | Dialogue & Vocal Isolation | Strips away background restaurant/studio noise and copyrighted background music tracks, isolating crystal-clear speech for mobile vocal punch. |
-| **Gemini 2.0 Flash Multimodal** | Video Action & Physical Virality Scoring | Uploads video proxies to detect non-verbal viral hooks, physical action, gestures, visual comedy, and stunts that text-only transcript scoring misses. |
-| **PySceneDetect (`AdaptiveDetector`)** | Shot Boundary Alignment | When an LLM cuts on transcript audio, speech often starts 0.5s before/after a camera switch. PySceneDetect finds visual shot cuts and snaps the clip boundary to the nearest visual transition, preventing 0.5-second visual flashes from previous scenes. |
-| **Pillow + QuickTime RLE Alpha** | Kinetic Word-by-Word Subtitles | Overcomes standard FFmpeg `libass` compilation limitations by rendering 670+ FPS transparent RGBA typography with active word highlights, drop shadows, and heavy black strokes, compositing losslessly via FFmpeg's native `overlay` filter. |
-| **faster-whisper / Whisper** | Word-Level Forced Alignment | Millisecond-accurate word boundaries ensure cuts never slice mid-syllable or mid-breath. |
-| **EBU R128 Loudness Normalization** | Mobile Vocal Punch Mastering | Filters out low-frequency rumble below 80Hz and normalizes audio to -14 LUFS (the exact sweet spot for mobile phone speakers on TikTok and Shorts). |
+- 🧠 **Adaptive AI Editorial Director (`engine/editorial_director.py`)**: Analyzes footage DNA to auto-classify videos into 6 archetypes (Podcasts, Solo Monologues, Gaming Livestreams, Keynotes, Sports Action, General Content) and dynamically choreographs framing, cut frequency, punch zooms, and typography without manual configuration.
+- 🎯 **Active Speaker Detection (ASD) & OpenCV YuNet (`engine/face_tracker.py`)**: Neural face detection with mouth-movement variance analysis to follow the active speaker across multi-guest podcasts with Exponential Moving Average (EMA) camera smoothing.
+- 👁️ **Gemini 2.0 Flash Multimodal Vision (`engine/clipper_engine.py`)**: Ingests compressed video proxies directly into Gemini 2.0 to detect physical stunts, visual comedy, non-verbal hooks, and on-screen action that text-only transcript scoring misses.
+- 🎙️ **Meta Demucs Neural Vocal Isolation (`engine/viral_enhancer.py`)**: Two-stem neural audio separation (`htdemucs`) removing copyrighted background tracks, crowd noise, and ambient hum for mobile vocal punch.
+- ✂️ **PySceneDetect Adaptive Shot Alignment (`engine/scene_detector.py`)**: Snaps transcript audio cuts to exact camera transitions, preventing jarring 0.5-second visual flashes.
+- ✨ **Kinetic Word-by-Word Viral Subtitles (`engine/viral_subtitles.py`)**: Real-time karaoke captions with active word highlighting in **Alex Hormozi** (neon yellow), **MrBeast** (electric green), and **Neon** (cyan) styles.
+- 🔥 **Retention Engineering**: 0–4s Top Hook headline banners, blurred background reframing, and mobile-optimized EBU R128 (-14 LUFS) loudness mastering.
+- 🎬 **AI Highlights Compilation Reel (`--compile-reel`)**: Stitches individual highlight clips into a narrative compilation reel with cinematic transitions (`whip_left`, `cross_zoom`, `optical_flash`, `additive_dissolve`) and acoustic sound design.
+- 🤖 **Everything Claude Code (ECC) Integration**: Fully configured project harness with 60+ domain agents and specialized video editing skills (`video-editing`, `videodb`, `remotion-video-creation`).
 
 ---
 
-## 🎨 Subtitle Style Presets
+## 📊 Live Benchmark: Real-World Run
 
-Choose from 4 proven short-form caption presets:
+Tested on **Australia v England 2026-27 | First T20I** (`-fBcBdRpLXQ` — 8 min 8 sec 1080p sports broadcast):
 
-1. **`hormozi`** (Default):
-   - Font: Heavy Bold (`Impact` / `Arial Black`)
-   - Active Word: **Vibrant Neon Yellow (`#FFE600`)**
-   - Inactive Words: Crisp White (`#FFFFFF`) with thick black stroke
-   - Case: Uppercase
-2. **`mrbeast`**:
-   - Active Word: **Electric Green (`#00FF66`)** with drop shadow
-   - Punchy, high-energy gaming/challenge aesthetic
-3. **`neon`**:
-   - Active Word: **Electric Cyan (`#00F0FF`)**
-   - Cyberpunk, tech, and podcast aesthetic
-4. **`minimal`**:
-   - Translucent dark pill badge behind words
-   - Clean, professional aesthetic for educational/business clips
+```
+================================================================
+  🎬  YouTube Clipping Pipeline  [video-clipping skill]
+================================================================
+  [1/8] 📥  Downloading 1080p source video via yt-dlp (139 MB)
+  [2/8] 🔍  ffprobe stream analysis & PySceneDetect pass (48,861 frames @ 972 fps)
+  [3/8] 🎙️  faster-whisper English word-level forced alignment
+  [4/8] 🧠  AI Editorial Director: Identified archetype SPORTS ACTION
+  [5/8] 🏆  4D Virality Matrix Scoring: 5 viral moments identified
+  [6/8] ✂️  Rendering 9:16 vertical cuts + Hormozi subtitles + 0-4s hook cards
+  [7/8] 🎬  Stitching Master Viral Compilation Reel with synced transition SFX
+================================================================
+```
+
+### 🏆 Output Virality Scorecard
+
+| # | Moment Title | Hook | Eng | Shr | ⭐ Overall | Duration | Resolution | Output File |
+|---|---|:---:|:---:|:---:|:---:|:---:|:---:|---|
+| **1** | **Six sixes from Harry Brook** | 8.0 | 8.4 | 8.6 | **8.2 / 10** | 89s | 1080x1920 | `..._01_six-sixes-from-harry-brooks-pl_hook_trans_auto.mp4` |
+| **2** | **Crazy McGurk** | 8.0 | 8.2 | 8.6 | **8.1 / 10** | 55s | 1080x1920 | `..._02_crazy-mcgurg_hook_trans_auto.mp4` |
+| **3** | **Dawson Breaks Through** | 7.1 | 8.8 | 8.1 | **7.9 / 10** | 91s | 1080x1920 | `..._03_dawson-immediately-breaks-thro_hook_trans_auto.mp4` |
+| **4** | **First Ball Mitch Marsh** | 7.1 | 8.2 | 8.1 | **7.8 / 10** | 20s | 1080x1920 | `..._04_first-ball-got-him-eventually-_hook_trans_auto.mp4` |
+| **5** | **More Home Runs (Baseball Hit)** | 8.0 | 7.6 | 8.1 | **7.8 / 10** | 54s | 1080x1920 | `..._05_six-six-and-thats-more-home-ru_hook_trans_auto.mp4` |
+| **⭐** | **Full Master Compilation Reel** | 8.0 | 8.8 | 8.6 | **8.2 / 10** | 309s | 1080x1920 | `..._VIRAL_REEL.mp4` |
+
+---
+
+## ⚡ 1-Click Installation
+
+### Windows (PowerShell)
+Run the automated installer to set up `.venv`, verify Python 3.12, check hardware encoders, and download model weights:
+```powershell
+powershell -ExecutionPolicy Bypass -File .\setup.ps1
+```
+
+### macOS / Linux (Bash)
+```bash
+chmod +x setup.sh
+./setup.sh
+```
+
+### Manual Setup
+```bash
+# 1. Clone repository
+git clone https://github.com/Jaideep3020/clipping.git
+cd clipping
+
+# 2. Create virtual environment
+python -m venv .venv
+
+# 3. Activate virtual environment
+# Windows:
+.\.venv\Scripts\Activate.ps1
+# macOS/Linux:
+source .venv/bin/activate
+
+# 4. Install dependencies
+pip install -r requirements.txt
+
+# 5. Configure API keys (optional for Gemini / OpenAI scoring)
+cp .env.example .env
+```
 
 ---
 
 ## 🖥️ ClipForge Web Studio UI
 
-Launch the local studio interface in your browser:
+Launch the dark-mode Gradio studio in your browser:
 
 ```bash
 python start_ui.py
-# Available at http://127.0.0.1:7860
+# Opens at http://127.0.0.1:7860
 ```
 
-### Studio Tabs:
+### Studio Features:
 1. **⚡ Auto Clip (SOTA Auto-Framing & Virality)**:
-   - Paste any YouTube URL
-   - Framing Mode: `auto_face (SOTA YuNet Face-Tracking ⚡)` or `blur_bg (Podcast/Gameplay/Wide)`
-   - Subtitle Presets: `hormozi`, `mrbeast`, `neon`, `minimal`
-   - Toggle **🔥 Top Hook Headline (0-4s)** to curb scroll-away rate
-   - Watch live streaming pipeline logs & visual scorecard ratings (`█████████░ 8.8/10`)
-   - Instant video playback of the finished viral short
-2. **✂️ Manual & Chapters**:
-   - Semantic chapter analysis (2–5 min chunks)
-   - Interactive checkbox selection of chapters
-   - Automatic English + Chinese bilingual subtitles
-   - One-click social copy generator (Xiaohongshu, Douyin/TikTok, YouTube Shorts)
-3. **🔇 Jump Cut (Silence Remover)**:
-   - Upload any raw footage
-   - Customize dB noise threshold and word boundary padding
-   - Strip silent gaps and dead air instantly without pitch alteration
-4. **⚙️ Settings & System Status**:
-   - Live hardware status (Apple VideoToolbox / NVENC, YuNet Face Detector, PySceneDetect)
-   - Configure API keys (`GEMINI_API_KEY`, `OPENAI_API_KEY`)
-   - Cache cleaner for intermediate files
+   - Paste YouTube URL or upload local video.
+   - Choose framing mode (`auto_face` YuNet Face Tracking, `blur_bg`, `facecam_stack`, `center_crop`).
+   - Pick subtitle style (`hormozi`, `mrbeast`, `neon`, `minimal`).
+   - Enable **🔥 Top Hook Headline (0-4s)** & **🎬 Master Compilation Reel**.
+   - Watch real-time streaming progress, live virality scorecard, and video preview.
+2. **✂️ Manual & Chapter Clipper**:
+   - Semantic chapter analysis (2–5 min chunks) with interactive checkboxes.
+   - Bilingual English + Chinese subtitle generation.
+   - One-click social copy generator (TikTok, Shorts, Xiaohongshu, Bilibili).
+3. **🔇 Jump Cut (Dead Air Remover)**:
+   - Strip silent pauses with customizable decibel threshold and padding.
+4. **⚙️ System Health & Hardware**:
+   - Hardware acceleration status (Apple VideoToolbox / NVENC / CPU).
+   - ONNX YuNet model & PySceneDetect checks.
 
 ---
 
-## 🚀 CLI Quick Start
+## 🚀 CLI Commands & Usage Examples
 
+### 1. Fully Autonomous SOTA Viral Short
 ```bash
-# 1. Full Viral Short (YuNet Face-Tracking + PySceneDetect + Hormozi Captions + Hook Banner)
 python pipeline.py "https://youtu.be/VIDEO_ID" \
   --vertical \
   --framing auto_face \
   --captions \
   --caption-style hormozi \
   --hook-banner \
-  --min-score 6.5
+  --compile-reel \
+  --min-score 6.0
+```
 
-# 2. Blurred Background Mode (for multi-person podcasts or wide gameplay)
+### 2. Multi-Guest Podcast with Meta Demucs Vocal Isolation
+```bash
 python pipeline.py "https://youtu.be/VIDEO_ID" \
   --vertical \
-  --framing blur_bg \
+  --framing auto_face \
+  --captions \
+  --isolate-vocals \
+  --min-score 7.0
+```
+
+### 3. Visual Stunt / Comedy Video with Gemini 2.0 Multimodal Vision
+```bash
+python pipeline.py "https://youtu.be/VIDEO_ID" \
+  --vertical \
+  --multimodal \
   --captions \
   --caption-style mrbeast
+```
 
-# 3. Dry Run (Inspect virality scorecard and titles before rendering)
+### 4. Gaming Livestream / GTA 6 Stacked Layout
+```bash
+python pipeline.py "https://youtu.be/VIDEO_ID" \
+  --vertical \
+  --framing facecam_stack \
+  --facecam-roi "1440,810,480,270" \
+  --gta6 \
+  --music-safe
+```
+
+### 5. Dry Run (Inspect virality scorecard and titles before rendering)
+```bash
 python pipeline.py "https://youtu.be/VIDEO_ID" --dry-run
+```
 
-# 4. Standalone Subtitle & Banner Burner on an Existing Video
-python scripts/burn_viral_subtitles.py clip.mp4 transcript.json viral_clip.mp4 \
-  --style hormozi \
-  --hook-banner "THE REAL TRUTH ABOUT AGI"
-
-# 5. Generate Viral Reach Metadata Pack (Titles, Captions, Hashtags)
-python scripts/generate_viral_pack.py "Title of Clip" "transcript excerpt or path"
+### 6. Generate Viral Reach Metadata Pack (Titles, Captions, Hashtags)
+```bash
+python scripts/generate_viral_pack.py "Six sixes from Harry Brook" "transcript excerpt or file path"
 ```
 
 ---
 
-## 🎮 GTA 6 & Live Stream Studio (Special Option)
+## 🧬 Adaptive Editorial Director: Content Archetypes
 
-Built according to the `GTA6_LIVE_CLIPPING_SKILL` specifications for Grand Theft Auto VI and multi-hour live streams on Twitch, Kick, and YouTube.
+The `AdaptiveEditorialDirector` inspects video frames, audio properties, and transcripts to automatically formulate the optimal editing strategy:
 
-### Modes:
-1. **Mode A: Long-VOD Highlights Finder (`scripts/vod_highlights.py`)**:
-   - Streams 1-second 16kHz audio through an FFmpeg pipe to calculate RMS dB spikes against a trailing 2-minute baseline.
-   - Ingests Twitch chat JSON (`TwitchDownloaderCLI` format), computes message velocity and keyword spikes, and shifts reactions backwards by `--chat-lag` (5–12s) to account for viewer delay.
-   - De-duplicates and ranks top candidates at least `--gap` seconds apart.
-   ```bash
-   python scripts/vod_highlights.py vod.mp4 --top 25 --render --vertical --chat chat.json --chat-lag 8
-   ```
-
-2. **Mode B: Ongoing Live Stream Auto-Clipper (`scripts/record_rolling.sh` & `scripts/live_clipper.py`)**:
-   - **Non-blocking Rolling Capture**: Captures live stream into 10-second MPEG-TS segments with automatic background expiration (`KEEP=45` minutes). Recording CPU usage is near-zero (`-c copy`).
-   - **Autonomous Analyzer**: Connects to Twitch IRC (`irc.chat.twitch.tv:6697`), computes live loudness z-scores and chat velocity, and auto-renders clips when virality exceeds the threshold.
-   ```bash
-   # Terminal 1: Rolling Buffer Capture
-   bash scripts/record_rolling.sh streamer_name buffer 45
-
-   # Terminal 2: Live Auto-Clipper & Monitor
-   python scripts/live_clipper.py --buffer buffer --vertical --channel streamer_name
-   ```
-
-3. **Mode C: Instant Replay Hotkey (`touch clip_now`)**:
-   - Hit **"⚡ CLIP THAT RIGHT NOW"** in the Web Studio or run `touch clip_now` in the terminal to force an immediate high-priority clip of the last 30s + post-roll reaction.
-
-4. **Gaming Framing & Safety**:
-   - **Stacked 9:16 Layout (`--framing facecam_stack`)**: Crops gameplay to 1080x1344 on top and streamer webcam to 1080x576 on bottom (`[game][cam]vstack`).
-   - **DMCA Music Shield (`--music-safe`)**: Removes in-game radio music tracks and masters voice/SFX to -14 LUFS to avoid copyright takedowns.
-   - **Cutscene Spoiler Detection**: Detects persistent 2.39:1 letterboxing and flags clips with `_SPOILER` to protect campaign story beats.
-
+| Content Archetype | Detection Signals | Auto Framing | Pacing & Cuts | Caption Style | Audio & Master |
+|---|---|---|---|---|---|
+| **Podcast** | Multiple speakers, conversational speech, interview keywords | Active Speaker Detection (ASD) | 45–90s contextual segments | `hormozi` (Yellow highlight) | Meta Demucs vocal isolation + -14 LUFS |
+| **Solo Talker** | Single central face, monologue, vlog format | Face-centered crop with punch-in zooms | 30–60s snappy cuts with pattern interrupts | `hormozi` / `neon` | Highpass 80Hz + EBU R128 |
+| **Gaming** | HUD/radar elements, high saturation, gameplay keywords | `facecam_stack` (game top, webcam bottom) | Rapid action cuts + transition SFX | `mrbeast` (Electric green) | DMCA music safety filter |
+| **Keynote / Presentation** | Slides, 16:9 presentations, low face motion | Blurred background or letterbox preserve | 60–90s complete conceptual ideas | `minimal` (Dark translucent pill) | Clear speech normalization |
+| **Sports Action** | High motion variance, field views, crowd roar spikes | Visual boundary snapping + pan | Pacing synced to pivotal moments | `mrbeast` / `hormozi` | Crowd ducking + dynamic punch |
+| **General** | Balanced audiovisual profile | Auto-face / Blur background fallback | 30–75s balanced chunks | `hormozi` | Standard mobile mastering |
 
 ---
 
-## 📁 Architecture & File Layout
+## 🎨 Subtitle Style Presets
+
+| Style | Font & Aesthetics | Active Word Color | Best For |
+|---|---|:---:|---|
+| **`hormozi`** | Ultra-bold Impact/Arial Black, heavy black outline | **Vibrant Neon Yellow (`#FFE600`)** | Business, advice, motivation, podcasts |
+| **`mrbeast`** | Heavy punchy font, deep drop shadow | **Electric Green (`#00FF66`)** | Gaming, challenges, sports, entertainment |
+| **`neon`** | Modern bold, cyber glow styling | **Electric Cyan (`#00F0FF`)** | Tech, coding, futuristic topics, night vlogs |
+| **`minimal`** | Clean sans-serif with translucent dark pill background | **Soft Yellow (`#FFDC28`)** | Corporate, educational, clean keynote shorts |
+
+---
+
+## 📁 Repository Structure
 
 ```
 clipping/
-├── start_ui.py                ← Launch script for the Gradio Web Studio
-├── pipeline.py                ← Automated CLI pipeline with SOTA flags
+├── start_ui.py                ← Gradio Web Studio launcher
+├── pipeline.py                ← Automated SOTA CLI pipeline
 ├── clipper.py                 ← Interactive 6-stage chapter clipper CLI
-├── requirements.txt           ← SOTA Dependencies (PySceneDetect, OpenCV, Gradio, Whisper)
-├── setup.sh                   ← Automated system probe & weights downloader (Linux/macOS)
-├── setup.ps1                  ← Automated 1-click Windows PowerShell installer
+├── requirements.txt           ← Pinned Python dependencies
+├── setup.ps1                  ← 1-click Windows PowerShell installer
+├── setup.sh                   ← 1-click macOS/Linux Bash installer
 │
-├── engine/                    ← Core AI & SOTA Computer Vision Engine
-│   ├── __init__.py
+├── engine/                    ← Core AI & Computer Vision Engine
 │   ├── editorial_director.py  ← Adaptive AI Editorial Director (Video DNA archetype routing)
 │   ├── clipper_engine.py      ← Gemini 2.0 Multimodal & SupoClip 4D Virality scoring
-│   ├── gta6_clipping.py       ← GTA 6 Moment taxonomy, facecam stack, spoilers & music safety
-│   ├── face_tracker.py        ← Active Speaker Detection (ASD) & YuNet Face Auto-Cropper
-│   ├── scene_detector.py      ← SOTA PySceneDetect Adaptive Shot Cut Alignment
-│   ├── viral_subtitles.py     ← Word-by-word dynamic karaoke subtitle engine
-│   ├── viral_enhancer.py      ← Meta Demucs vocal isolation, pattern-interrupt punch zooms
-│   ├── viral_editor.py        ← Top hook banner, blurred background reframing, vocal punch
-│   └── face_detection_yunet.onnx ← YuNet Deep Learning Model Weights (227KB)
+│   ├── face_tracker.py        ← Active Speaker Detection (ASD) & YuNet 9:16 Face Tracker
+│   ├── scene_detector.py      ← PySceneDetect Adaptive Shot Cut Alignment
+│   ├── viral_subtitles.py     ← Dynamic word-by-word viral karaoke captions
+│   ├── viral_enhancer.py      ← Meta Demucs vocal isolation & synthesized SFX
+│   ├── viral_editor.py        ← Top hook banner cards & blurred background reframing
+│   ├── transition_director.py ← AI transition sequencing & narrative compilation
+│   ├── transition_pack.py     ← Premiere Pro & CapCut transition effects
+│   ├── encoder_utils.py       ← Hardware acceleration (VideoToolbox / NVENC / CPU)
+│   ├── gta6_clipping.py       ← Gaming layout, facecam stack & spoiler detection
+│   └── face_detection_yunet.onnx ← YuNet Deep Learning Weights (227 KB)
 │
-├── .agents/                   ← ECC (Everything Claude Code) Rules, Agents & Skills
-│   ├── agents/                ← 60+ domain agents (planner, code-reviewer, etc.)
-│   ├── rules/                 ← Coding, testing, and security standards
+├── .agents/                   ← Everything Claude Code (ECC) Integration
+│   ├── agents/                ← 60+ domain-specific agent definitions
+│   ├── rules/                 ← Production engineering, testing & review standards
 │   └── skills/                ← Video editing, VideoDB, Remotion, and quality skills
 │
 ├── ui/                        ← Web Studio Frontend
-│   ├── __init__.py
-│   ├── app.py                 ← Gradio Blocks application & backend bridges (5 Tabs)
-│   └── style.css              ← Custom dark neon theme
+│   ├── app.py                 ← Gradio Blocks application & bridges
+│   └── style.css              ← Custom dark neon studio stylesheet
 │
-├── scripts/                   ← Specialized tools
-│   ├── vod_highlights.py      ← Multi-hour VOD highlight finder (audio dB + chat lag)
-│   ├── record_rolling.sh      ← Live stream rolling MPEG-TS buffer recorder
-│   ├── live_clipper.py        ← Real-time automated live stream clipper & hotkey
-│   ├── burn_viral_subtitles.py← Standalone viral subtitle & hook banner tool
-│   ├── generate_viral_pack.py ← Multi-platform social copy, hashtags & hook titles
-│   ├── download_video.py      ← yt-dlp MP4 + subtitle fetcher
-│   ├── analyze_subtitles.py   ← VTT cue parser
-│   ├── clip_video.py          ← Method B frame-accurate FFmpeg cutter
-│   ├── extract_subtitles.py   ← Clip-window subtitle slicing & re-basing
-│   ├── translate_subtitles.py ← Batch EN→ZH translator (20 cues/batch = 95% API reduction)
-│   ├── make_bilingual_srt.py  ← Dual-language subtitle merger
-│   ├── burn_subtitles.py      ← libass hard-burner with path-escape tempdir trick
-│   ├── generate_summary.py    ← Multi-platform social copywriter
+├── scripts/                   ← Standalone utility scripts
+│   ├── generate_viral_pack.py ← AI social copy, titles, hashtags & engagement CTAs
+│   ├── burn_viral_subtitles.py← Standalone subtitle & banner burner
+│   ├── vod_highlights.py      ← Audio dB + Twitch chat velocity highlight finder
+│   ├── live_clipper.py        ← Rolling live stream auto-clipper & hotkey
 │   └── jumpcut.py             ← Silence detection & speech condenser
 │
-├── source/                    ← Original downloads (never modified or overwritten)
-├── work/                      ← Cached transcripts, chapter metadata, and plans
-├── output/                    ← Pipeline output clips (with manifest.csv & report.json)
-└── youtube-clips/             ← Interactive chapter exports & summaries
+├── source/                    ← Downloaded raw media (never modified)
+├── work/                      ← Cached transcripts, intermediate plans, and SRTs
+├── output/                    ← Finished viral clips, manifests, and compilation reels
+└── youtube-clips/             ← Interactive chapter exports
 ```
+
+---
+
+## 🛠️ Verification & Testing
+
+Run the test suite to verify core engine modules:
+
+```bash
+# Verify module imports
+python -c "import engine.editorial_director, engine.clipper_engine, engine.face_tracker, engine.viral_subtitles, engine.viral_enhancer; print('All core modules verified!')"
+
+# Test CLI help
+python pipeline.py --help
+```
+
+---
+
+## 📄 License
+
+Distributed under the **MIT License**. See `LICENSE` for details.
